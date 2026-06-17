@@ -1,0 +1,54 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                    String         @id @default(uuid())
+  name                  String
+  email                 String         @unique
+  passwordHash          String
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  failedLoginAttempts   Int            @default(0)
+  accountLockedUntil    DateTime?
+  passwordResetToken    String?        @unique
+  passwordResetExpires  DateTime?
+  sessions              Session[]
+  savingsEntries        SavingsEntry[]
+  securityLogs          SecurityLog[]
+}
+
+model Session {
+  id               String   @id @default(uuid())
+  userId           String
+  sessionToken     String   @unique // This will store the SHA-256 hash of the raw token
+  expiresAt        DateTime
+  deviceIdentifier String
+  createdAt        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SavingsEntry {
+  id        String   @id @default(uuid())
+  userId    String
+  amount    Float
+  note      String
+  date      DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SecurityLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  email      String?
+  action     String   // e.g. "LOGIN_SUCCESS", "LOGIN_FAILED", "ACCOUNT_LOCKOUT", "PASSWORD_RESET_REQUEST", "PASSWORD_RESET_COMPLETE", "LOGOUT", "LOGOUT_ALL"
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
