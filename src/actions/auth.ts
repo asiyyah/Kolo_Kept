@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import {
@@ -61,7 +62,7 @@ export async function signupAction(prevState: unknown, formData: FormData): Prom
     const passwordHash = await hashPassword(password);
 
     // Create user and write security log within a transaction
-    const newUser = await db.$transaction(async (tx) => {
+    const newUser = await db.$transaction(async (tx: Prisma.TransactionClient) => {
       const user = await tx.user.create({
         data: {
           name,
@@ -163,7 +164,7 @@ export async function loginAction(prevState: unknown, formData: FormData): Promi
 
     if (!passwordMatch) {
       // Increment failed attempts and trigger lockout if limit reached
-      await db.$transaction(async (tx) => {
+      await db.$transaction(async (tx: Prisma.TransactionClient) => {
         const failedAttempts = user.failedLoginAttempts + 1;
         const lockUntil =
           failedAttempts >= 10 ? new Date(Date.now() + 60 * 60 * 1000) : null; // 1 hour lockout
@@ -191,7 +192,7 @@ export async function loginAction(prevState: unknown, formData: FormData): Promi
     }
 
     // 7. Successful Login: Clear lockout and failed attempts inside a transaction
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.user.update({
         where: { id: user.id },
         data: {
@@ -255,7 +256,7 @@ export async function logoutAllAction(): Promise<void> {
   }
 
   try {
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.session.deleteMany({
         where: { userId: user.id },
       });
@@ -337,7 +338,7 @@ export async function forgotPasswordAction(
     const hashedToken = hashToken(rawToken);
     const expires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.user.update({
         where: { id: user.id },
         data: {
@@ -409,7 +410,7 @@ export async function resetPasswordAction(
     // Hash new password (cost 14) and update within a transaction
     const newPasswordHash = await hashPassword(password);
 
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.user.update({
         where: { id: user.id },
         data: {
