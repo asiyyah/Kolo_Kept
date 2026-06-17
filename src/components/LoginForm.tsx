@@ -1,16 +1,27 @@
 "use client";
 
-import React, { useActionState } from "react";
+import React, { useActionState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { loginAction } from "@/actions/auth";
 import { Mail, Lock, Loader2, AlertTriangle } from "lucide-react";
 import Input from "@/components/Input";
 import PasswordInput from "@/components/PasswordInput";
 
 export default function LoginForm() {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(loginAction, {
     success: false,
   });
+
+  useEffect(() => {
+    if (state.success) {
+      const timeout = setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [state.success, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4 py-12">
@@ -55,12 +66,6 @@ export default function LoginForm() {
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
               Redirecting to dashboard
             </p>
-            <script
-              dangerouslySetInnerHTML={{
-                __html:
-                  'setTimeout(() => { window.location.href = "/dashboard" }, 1000)',
-              }}
-            />
           </div>
         ) : (
           <form action={formAction} className="space-y-4">

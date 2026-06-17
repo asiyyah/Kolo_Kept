@@ -1,17 +1,28 @@
 "use client";
 
-import React, { useActionState, useState } from "react";
+import React, { useActionState, useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { signupAction } from "@/actions/auth";
 import { Check, X, User, Mail, Lock, Loader2 } from "lucide-react";
 import Input from "@/components/Input";
 import PasswordInput from "@/components/PasswordInput";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(signupAction, {
     success: false,
   });
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    if (state.success) {
+      const timeout = setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [state.success, router]);
 
   const checks = {
     length: password.length >= 12,
@@ -75,12 +86,6 @@ export default function SignupPage() {
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
               Redirecting to dashboard
             </p>
-            <script
-              dangerouslySetInnerHTML={{
-                __html:
-                  'setTimeout(() => { window.location.href = "/dashboard" }, 1000)',
-              }}
-            />
           </div>
         ) : (
           <form action={formAction} className="space-y-4">
