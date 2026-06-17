@@ -223,7 +223,7 @@ export async function loginAction(prevState: unknown, formData: FormData): Promi
 /**
  * Server Action: Secure Logout
  */
-export async function logoutAction(formData: FormData): Promise<void> {
+export async function logoutAction(): Promise<void> {
   const { userAgent, ipAddress } = await getRequestMetadata();
   const user = await verifySession();
 
@@ -246,7 +246,7 @@ export async function logoutAction(formData: FormData): Promise<void> {
 /**
  * Server Action: Logout Everywhere (Invalidate All Sessions)
  */
-export async function logoutAllAction(formData: FormData): Promise<void> {
+export async function logoutAllAction(): Promise<void> {
   const { userAgent, ipAddress } = await getRequestMetadata();
   const user = await verifySession();
 
